@@ -1,6 +1,5 @@
 <html>
 <head>
-  <meta http-equiv="refresh" content="60">
   <style>
 @import url('https://fonts.googleapis.com/css?family=Rubik+Mono+One&display=swap');
 
@@ -15,7 +14,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 5cm;
+  font-size: 3cm;
 }
 
 .date {
@@ -25,19 +24,56 @@ body {
 .time {
   color: #f94;
 }
+
+.extra {
+  color: #49f;
+}
+
   </style>
 <body>
 <div class="date"><span id="day">??</span> <span id="month">??</span></div>
 <div class="time"><span id="hour">??</span>:<span id="minute">??</span></div>
+<div class="extra"><span id="plhour">??</span>.<span id="plminute">??</span></div>
 </body>
+<script src="http://colourcountry.net/2018/static/suncalc/suncalc.js"></script>
 <script>
+var get_date_string = function( when ) {
+    return when.getFullYear()+'-'+('00'+(when.getMonth()+1)).substr(-2)+'-'+('00'+when.getDate()
+).substr(-2);
+};
+
+
 window.setInterval(function() {
   let t = new Date();
-  document.getElementById("day").firstChild.nodeValue = t.getDate();
-  document.getElementById("month").firstChild.nodeValue = t.getMonth()+1;
-  document.getElementById("hour").firstChild.nodeValue = t.getHours();
-  document.getElementById("minute").firstChild.nodeValue = t.getMinutes();
+  document.getElementById("day").firstChild.nodeValue = (t.getDate() + "").padStart(2,"0");
+  document.getElementById("month").firstChild.nodeValue = (t.getMonth()+1 + "").padStart(2,"0");
+  document.getElementById("hour").firstChild.nodeValue = (t.getHours() + "").padStart(2,"0");
+  document.getElementById("minute").firstChild.nodeValue = (t.getMinutes() + "").padStart(2,"0");
+
+  let times = SunCalc.getTimes( t, 51, 0 );
+
+  let is_night = times.sunset < t;
+
+  var plhour;
+
+  if (is_night) {
+    var u = new Date();
+    u.setDate( u.getDate() + 1 );
+    let tomorrow_times = SunCalc.getTimes( u, 51, 0 );
+    let night_length = tomorrow_times.sunrise.getTime() - times.sunset.getTime();
+    let night_elapsed = t.getTime() - times.sunset.getTime();
+    plhour = (night_elapsed / night_length) * 12 + 12;
+  } else {
+    let day_length = times.sunset.getTime() - times.sunrise.getTime();
+    let day_elapsed = t.getTime() - times.sunrise.getTime();
+    plhour = (day_elapsed / day_length) * 12;
+  }
+
+  let whole_hour = Math.floor(plhour);
+  document.getElementById("plhour").firstChild.nodeValue = (Math.floor(plhour) + "").padStart(2,"0");
+  document.getElementById("plminute").firstChild.nodeValue = (((plhour - whole_hour)*60).toFixed(0) + "").padStart(2, "0");
+
+
 }, 1000);
 </script>
 </html>
-
